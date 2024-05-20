@@ -1,0 +1,62 @@
+
+local m={}
+
+
+function m.IsNil(arg)
+	if arg then
+		return false
+	else
+		return true
+	end
+end
+
+function m.IsBoolean(arg)
+	if arg then
+		return type(arg)=="boolean"
+	end
+	return false
+end
+
+function m.IsNumber(arg)
+	if arg then
+		return type(arg)=="number"
+	end
+	return false
+end
+
+function m.IsString(arg)
+	if arg then
+		return type(arg)=="string"
+	end
+	return false
+end
+
+function m.IsFunction(arg)
+	if arg then
+		return type(arg)=="function"
+	end
+	return false
+end
+
+function m.IsUserdata(arg)
+	if arg then
+		return type(arg)=="userdata"
+	end
+	return false
+end
+
+function m.IsThread(arg)
+	if arg then
+		return type(arg)=="thread"
+	end
+	return false
+end
+
+function m.IsTable(arg)
+	if arg then
+		return type(arg)=="table"
+	end
+	return false
+end
+
+return m

@@ -1,0 +1,12 @@
+--初始化表
+local m_wdt={}
+
+function m_wdt.init()
+	if wdt then
+		log.info("Watchdog Init!")
+		wdt.init(10000)--初始化watchdog设置为10s
+		sys.timerLoopStart(wdt.feed, 3000)--3s喂一次狗
+	end
+end
+
+return m_wdt
