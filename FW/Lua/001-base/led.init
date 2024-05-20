@@ -1,0 +1,11 @@
+local m_init={}
+
+function m_init.init()
+	if led and led.init and type(led.init)=="function" then
+		log.info("LED Init!")
+		--调用LED模块的init函数
+		led.init()
+	end
+end
+
+return m_init

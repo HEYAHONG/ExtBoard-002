@@ -1,0 +1,59 @@
+--由于要在函数中访问led，因此应将局部变量名与库加载后的全局变量名(即不包括后缀的文件名)保持一致，这样可以确保调用函数时不报错。
+local led={}
+
+--当前计数值
+led.count=0;
+--最大计数值，掩码最多32位
+led.maxcount=32;
+--LED STATUS(GPIO26)
+led.status_pin=26
+led.status_mask=0x55555555
+--LED NET STATUS(GPIO27)
+led.net_status_pin=27
+led.net_status_mask=0xAAAAAAAA
+--启动标志
+led.is_started=0;
+
+--STATUS灯亮灭掩码表，每位表示100ms
+function led.set_status_mask(mask)
+	if mask and type(mask)=="number" then
+		led.status_mask=mask
+	end
+end
+
+--NET STATUS灯亮灭掩码表，每位表示100ms
+function led.set_net_status_mask(mask)
+	if mask and type(mask)=="number" then
+		led.net_status_mask=mask
+	end
+end
+
+function led.init()
+	if led.is_started and led.is_started == 1 then
+		return
+	end
+	led.is_started=1
+	if gpio then
+		gpio.setup(led.status_pin,0,gpio.PULLUP)
+		gpio.setup(led.net_status_pin,0,gpio.PULLUP)
+		--每100ms执行一次LED状态转换
+		sys.timerLoopStart(function()
+			led.count=led.count+1
+			if led.count >= led.maxcount then
+				led.count=0
+			end
+			if ((1<<led.count) & led.status_mask) ~= 0 then
+				gpio.set(led.status_pin,1)
+			else
+				gpio.set(led.status_pin,0)
+			end
+			if ((1<<led.count) & led.net_status_mask) ~= 0 then
+				gpio.set(led.net_status_pin,1)
+			else
+				gpio.set(led.net_status_pin,0)
+			end
+		end, 100)
+	end
+end
+
+return led
