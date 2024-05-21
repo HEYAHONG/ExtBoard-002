@@ -6,6 +6,59 @@ VERSION = "1.0.0"
 _G.sys = require("sys")
 _G.sysplus = require("sysplus")
 
+--APP信息表
+local app={}
+
+----将mobile信息存储在app中
+if mobile then
+	--自动识别，优先使用SIM0
+	mobile.simid(2,true)
+	app.mobile={}
+	app.mobile.sim={}
+	sys.subscribe("SIM_IND",function(status,value)
+		--将SIM消息存储在app中
+		log.info("SIM",status)
+		if status=="SIM_WC" then
+			log.info("SIM","write counter",value)
+		end
+		if status=="RDY" then
+			app.mobile.sim.rdy=true
+		end
+		if status=="NORDY" then
+			app.mobile.sim.rdy=false
+		end
+		if status=="SIM_PIN" then
+			app.mobile.sim.rdy=false
+			app.mobile.sim.pin=true
+		end
+		if status=="GET_NUMBER" then
+			log.info("SIM","number",mobile.number(0))
+		end
+	end)
+	app.mobile.ip={}
+	sys.subscribe("IP_READY",function(ip,adapter)
+		--将IP信息存储在app中
+		log.info("mobile","IP_READY",ip)
+		app.mobile.ip.ip=ip
+		app.mobile.ip.adapter=adapter
+	end)
+	sys.subscribe("IP_LOSE",function(adapter)
+		--将IP信息存储在app中
+		log.info("mobile","IP_LOSE")
+		app.mobile.ip.ip=nil
+		app.mobile.ip.adapter=adapter
+	end)
+	app.mobile.ntp={}
+	sys.subscribe("NTP_UPDATE",function()
+		log.info("mobile","time",os.date())
+		app.mobile.ntp.update=true
+	end)
+end
+
+----将APP信息加入_G(可全局访问)
+_G.app=app
+
+
 --启动初始化任务,在任务中完成剩余初始化任务
 sys.taskInit(function()
 	log.info("Main init started!");

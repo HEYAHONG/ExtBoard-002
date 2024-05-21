@@ -1,0 +1,36 @@
+--局部变量名与库加载后的全局变量名(即不包括后缀的文件名)保持一致，这样可以确保调用函数时不报错。
+local netmgr={}
+
+--初始化一些变量
+netmgr.ip=nil
+if gpio then
+	--SIM卡插拔检测
+	netmgr.sim_det_pin=34
+end
+
+
+
+function netmgr.init()
+	if gpio then
+		gpio.setup(netmgr.sim_det_pin,function(val)
+			log.info("SIM DET",val)
+			local status=gpio.get(netmgr.sim_det_pin)
+			if mobile then
+				--低电平表示断开
+				if status == 0 then
+					--设置为内置SIM卡
+					mobile.simid(1,true)
+				else
+					--设置为可插拔SIM卡
+					mobile.simid(0,true)
+				end
+			end
+		end,gpio.PULLUP,gpio.BOTH)
+		gpio.debounce(netmgr.sim_det_pin,400,1)
+	end
+	if mobile then
+		
+	end
+end
+
+return netmgr

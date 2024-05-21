@@ -1,0 +1,11 @@
+
+local m_init={}
+
+function m_init.init()
+	if netmgr and netmgr.init and type(netmgr.init)=="function" then
+		log.info("Netmgr Init!")
+		netmgr.init()
+	end
+end
+
+return m_init
