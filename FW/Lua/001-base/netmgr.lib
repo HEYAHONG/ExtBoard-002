@@ -30,7 +30,7 @@ function netmgr.init()
 	end
 	if mobile then
 		--将NET_STATUS灯设置为1.6S亮1.6S灭
-		 led.set_net_status_mask(0xFFFF0000)
+		led.set_net_status_mask(0xFFFF0000)
 		sys.timerLoopStart(function()
 			if app.mobile.ip.ip then
 				if netmgr.ip == nil then
