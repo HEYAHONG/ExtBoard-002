@@ -30,3 +30,7 @@ Lua作为脚本语言，是一种解释型语言，相对于编译型语言，�
 # 底包
 
 若无特殊说明,默认采用LuatOS-SoC_Vxxxx_EC618_TTS_ONCHIP.soc作为底包,其中Vxxxx表示版本号，如版本1109则为V1109。
+
+注意:使用LuaTools自动下载的底包可能没有RNDIS功能,不能通过USB(RNDIS)上网。需要到[http://luatos.com](http://luatos.com)登录后定制固件。
+
+![luatos_com_build](luatos_com_build.png)
