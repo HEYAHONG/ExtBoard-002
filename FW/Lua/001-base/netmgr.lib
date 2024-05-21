@@ -41,7 +41,7 @@ function netmgr.init()
 			else
 				if netmgr.ip then
 					--将NET_STATUS灯设置为0.8S亮0.8S灭
-					led.set_net_status_mask(0xF0F0F0F0)
+					led.set_net_status_mask(0xFF00FF00)
 					log.info("netmgr","ip lose!")					
 				end				
 			end
