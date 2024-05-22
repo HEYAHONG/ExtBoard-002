@@ -4,6 +4,12 @@ local m_init={}
 function m_init.init()
 	if netmgr and netmgr.init and type(netmgr.init)=="function" then
 		log.info("Netmgr Init!")
+		netmgr.set_ip_ready_cb(function()
+			log.info("netmgr","ip ready callback!")
+		end)
+		netmgr.set_ip_lose_cb(function()
+			log.info("netmgr","ip lose callback!")
+		end)
 		netmgr.init()
 	end
 end

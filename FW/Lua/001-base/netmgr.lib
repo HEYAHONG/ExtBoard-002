@@ -8,6 +8,45 @@ if gpio then
 	netmgr.sim_det_pin=34
 end
 
+function netmgr.set_ip_ready_cb(func)
+	if netmgr.ip_ready_cb==nil then
+		netmgr.ip_ready_cb=new("/luadb/callback.class")
+	end
+	if netmgr.ip_ready_cb==nil then
+		return nil
+	end
+	return netmgr.ip_ready_cb:register(func)
+end
+
+function netmgr.clear_ip_ready_cb(id)
+	if netmgr.ip_ready_cb==nil then
+		netmgr.ip_ready_cb=new("/luadb/callback.class")
+	end
+	if netmgr.ip_ready_cb==nil then
+		return nil
+	end
+	return netmgr.ip_ready_cb:deregister(id)
+end
+
+function netmgr.set_ip_lose_cb(func)
+	if netmgr.ip_lose_cb==nil then
+		netmgr.ip_lose_cb=new("/luadb/callback.class")
+	end
+	if netmgr.ip_lose_cb==nil then
+		return nil
+	end
+	return netmgr.ip_lose_cb:register(func)
+end
+
+function netmgr.clear_ip_lose_cb(id)
+	if netmgr.ip_lose_cb==nil then
+		netmgr.ip_lose_cb=new("/luadb/callback.class")
+	end
+	if netmgr.ip_lose_cb==nil then
+		return nil
+	end
+	return netmgr.ip_lose_cb:deregister(id)
+end
 
 
 function netmgr.init()
@@ -28,7 +67,7 @@ function netmgr.init()
 		end,gpio.PULLUP,gpio.BOTH)
 		gpio.debounce(netmgr.sim_det_pin,400,1)
 	end
-	if mobile then
+	if mobile then		
 		--将NET_STATUS灯设置为1.6S亮1.6S灭
 		led.set_net_status_mask(0xFFFF0000)
 		sys.timerLoopStart(function()
@@ -37,12 +76,26 @@ function netmgr.init()
 					--将NET_STATUS灯设置为常亮
 					led.set_net_status_mask(0xFFFFFFFF)
 					log.info("netmgr","ip ready!")
+					if netmgr.ip_ready_cb then
+						netmgr.ip_ready_cb:call(function(func)
+							if func and type(func)=="function" then
+								func()
+							end
+						end)
+					end
 				end
 			else
 				if netmgr.ip then
 					--将NET_STATUS灯设置为0.8S亮0.8S灭
 					led.set_net_status_mask(0xFF00FF00)
-					log.info("netmgr","ip lose!")					
+					log.info("netmgr","ip lose!")
+					if netmgr.ip_lose_cb then
+						netmgr.ip_lose_cb:call(function(func)
+							if func and type(func)=="function" then
+								func()
+							end
+						end)
+					end
 				end				
 			end
 			netmgr.ip=app.mobile.ip.ip

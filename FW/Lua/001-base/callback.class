@@ -1,0 +1,49 @@
+local m={}
+--池
+m.pool={}
+--下一个ID
+m.nextidval=1
+
+--下一个id
+function m.nextid(self)
+	local id=self.nextidval
+	self.nextidval=self.nextidval+1
+	return id
+end
+
+--注册回调函数,成功返回id(用于反注册),失败返回nil
+function m.register(self,func)
+	if func and type(func)=="function" then
+		local id=self:nextid()
+		self.pool[id]=func
+		return id
+	end
+	return nil
+end
+
+--反注册回调函数，返回nil
+function m.deregister(self,id)
+	if id and type(id)=="number" then
+		self.pool[id]=nil
+	end
+	return nil
+end
+
+--反注册所有回调函数，返回nil
+function m.deregisterall(self)
+	m.pool={}
+	m.nextidval=1
+	return nil
+end
+
+--调用回调函数，函数callback的第一个参数为注册时写入的函数,返回nil
+function m.call(self,callback)
+	if callback and type(callback)=="function" then
+		for k, v in pairs(self.pool) do
+			callback(v)
+		end
+	end
+	return nil
+end
+
+return m
