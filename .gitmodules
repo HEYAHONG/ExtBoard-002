@@ -1,0 +1,3 @@
+[submodule "FW/C/sdk"]
+	path = FW/C/sdk
+	url = https://gitee.com/openLuat/luatos-soc-2022.git
