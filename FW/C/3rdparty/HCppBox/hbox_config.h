@@ -7,4 +7,9 @@
 #define HDEFAULTS_MALLOC        hbox_malloc
 #define HDEFAULTS_FREE          hbox_free
 
+/*
+ * EC618模块自带libmqtt，无需paho.mqtt.embedded_c
+ */
+#define H3RDPARTY_USING_SYSTEM_PAHO_MQTT_EMBEDDED_C_PACKET 1
+
 #endif // __HBOX_CONFIG_H__
