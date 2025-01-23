@@ -8,6 +8,10 @@ local LIB_NAME = "lib" .. TARGET_NAME .. ".a "
 target(TARGET_NAME)
     set_kind("static")
     set_targetdir(LIB_DIR)
+
+    --关闭不关注的警告
+    add_cxxflags("-Wno-unused-parameter","-Wno-effc++","-Wno-sign-compare")
+    add_cflags("-Wno-unused-parameter","-Wno-sign-compare")
     
     --添加宏定义
     add_defines("HBOX_CONFIG_HEADER=hbox_config.h")
