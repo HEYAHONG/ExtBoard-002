@@ -4,6 +4,7 @@
 #include "luat_rtos_legacy.h"
 #include "luat_mem.h"
 #include "luat_mcu.h"
+#include "common_api.h"
 
 hdefaults_tick_t hbox_tick_get(void)
 {
@@ -40,5 +41,14 @@ void hbox_free(void *ptr)
     luat_heap_free(ptr);
 }
 
+static void hbox_init(void)
+{
+    //初始化HBox C++运行环境
+    hcpprt_init();
+}
 
+/*
+ * 运行环境应当在任务启动之前完成。
+ */
+INIT_DRV_EXPORT(hbox_init,"z");
 
