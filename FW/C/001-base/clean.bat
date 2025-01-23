@@ -16,8 +16,6 @@ echo SDK不存在,请使用git下载并使用git submodule update --init下载�
 pause
 goto :eof
 :CheckSdkOk
-set ROOT_PATH=%APP_ROOT_PATH%\..\sdk
-set ROOT_PATH=%ROOT_PATH:\=/%
 
 @rem 检查xmake
 xmake --version 2> nul  > nul
@@ -29,7 +27,7 @@ goto :eof
 
 
 @rem 清理工程目录
-echo SDK:%ROOT_PATH:/=\%,APP:%APP_ROOT_PATH%
-pushd %ROOT_PATH:/=\%
+echo APP:%APP_ROOT_PATH%
+pushd %APP_ROOT_PATH:/=\%\..\sdk
 xmake clean --all -v
 popd
