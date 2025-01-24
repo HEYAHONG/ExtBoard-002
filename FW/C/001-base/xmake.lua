@@ -1,5 +1,9 @@
+--设置xmake最低版本
+set_xmakever("2.9.0")
 --获取当前目录
 local current_dir=os.scriptdir()
+--设置HRC目录
+HRC_FS_ROOT_DIR=current_dir.."/fs/"
 --添加第三方源代码
 includes(current_dir.."/../3rdparty/")
 --添加应用源代码

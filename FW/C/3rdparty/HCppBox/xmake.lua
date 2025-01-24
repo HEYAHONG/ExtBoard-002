@@ -1,5 +1,15 @@
 --获取当前目录
 local current_dir=os.scriptdir()
+--获取HRC_FS_ROOT_DIR并生成相应文件
+local hrc_fs_root_dir=os.getenv("HRC_FS_ROOT_DIR")
+if  HRC_FS_ROOT_DIR then
+    hrc_fs_root_dir=HRC_FS_ROOT_DIR
+end
+if  hrc_fs_root_dir then
+       before_build(function()
+                        os.exec(current_dir.."/master/hrc/fsgen.exe".." "..hrc_fs_root_dir.." "..current_dir.."/RC_fs.c")
+                    end)
+end
 --添加TARGET
 local TARGET_NAME = "HCppBox"
 local LIB_DIR = "$(buildir)/3rdparty/".. TARGET_NAME .. "/"
@@ -24,6 +34,12 @@ target(TARGET_NAME)
     add_files("./master/hbox/cpp/*.cpp",{public = true})
     add_files("./master/hbox/modbus/*.c",{public = true})
     add_files("./master/hbox/gui/*.c",{public = true})
+
+    if hrc_fs_root_dir then
+        add_includedirs("./master/hrc",{public = true})
+        add_files("./master/hrc/*.c",{public = true})
+        add_files("./RC_fs.c",{public = true})
+    end
 
     --可以继续增加add_includedirs和add_files
     --自动链接
