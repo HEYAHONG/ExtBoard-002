@@ -35,3 +35,34 @@ POPD 2> nul > nul
 @rem 使用ping延时一段时间
 ping localhost 2> nul > nul
 
+
+@rem 检查cmake
+cmake --version 2> nul  > nul
+if "X%ERRORLEVEL%" == "X0" goto :CheckCMakeOk
+echo cmake 未安装，请到https://cmake.org下载安装
+goto :eof
+:CheckCMakeOk
+
+@rem 检查ninja
+ninja --version 2> nul  > nul
+if "X%ERRORLEVEL%" == "X0" goto :CheckNinjaOk
+echo Ninja 未安装，请到https://ninja-build.org/下载安装
+goto :eof
+:CheckNinjaOk
+
+@rem 检查gcc
+gcc --version 2> nul  > nul
+if "X%ERRORLEVEL%" == "X0" goto :CheckGccOk
+echo GCC未安装，无法生成工程。
+goto :eof
+:CheckGccOk
+
+
+@rem 生成codeblocks工程文件
+mkdir  "%APP_ROOT_PATH%\build"
+pushd "%APP_ROOT_PATH%\build"
+cmake -G "CodeBlocks - Ninja" "%APP_ROOT_PATH%\..\sdk"
+popd
+
+
+
