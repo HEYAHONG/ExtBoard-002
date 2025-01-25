@@ -22,7 +22,7 @@ hdefaults_tick_t hbox_tick_get(void)
 //中断嵌套层数
 static atomic_int   hbox_critical_interrupt_nested=INT_MIN/2;
 //中断初始化，若未初始化时,类似于中断状态，加锁直接返回。
-void hbox_critical_interrupt_init()
+static void hbox_critical_interrupt_init()
 {
     hbox_critical_interrupt_nested-=INT_MIN/2;
 }
@@ -37,15 +37,19 @@ void hbox_critical_interrupt_leave()
     hbox_critical_interrupt_nested--;
 }
 //临界区嵌套的层数
-static atomic_int   hbox_critical_nested=0;
-
+static atomic_int       hbox_critical_nested=0;
+static void _Atomic *  current_task=NULL;
 void hbox_enter_critical()
 {
     //在中断嵌套过程中，默认锁容易出问题，用户尽量不要使用默认锁
-    while(hbox_critical_nested!=0 && hbox_critical_interrupt_nested==0)
+    if(hbox_critical_interrupt_nested==0)
     {
-        //交出控制权
-        luat_rtos_task_sleep(1);
+        while(hbox_critical_nested!=0 && (current_task!=NULL && current_task != luat_get_current_task()))
+        {
+            //交出控制权
+            luat_rtos_task_sleep(1);
+        }
+        current_task=luat_get_current_task();
     }
     hbox_critical_nested++;
 }
