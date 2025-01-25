@@ -30,6 +30,10 @@ target(TARGET_NAME)
     add_cxxflags("-Wno-unused-parameter","-Wno-effc++","-Wno-sign-compare")
     add_cflags("-Wno-unused-parameter","-Wno-sign-compare")
     
+    --设置C/C++标准
+    add_cxxflags("-std=gnu++11")
+    add_cflags("-std=gnu11",{force=true})
+
     --添加宏定义
     add_defines("HBOX_CONFIG_HEADER=hbox_config.h")
     --加入代码和头文件

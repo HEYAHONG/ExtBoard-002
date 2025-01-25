@@ -12,31 +12,49 @@
 #include "luat_pm.h"
 #include "luat_wdt.h"
 #include "common_api.h"
+#include "stdatomic.h"
 
 hdefaults_tick_t hbox_tick_get(void)
 {
     return luat_mcu_tick64()/(1000*luat_mcu_us_period());
 }
 
-static int32_t critical_nested=0;
-static uint32_t critical_data=0;
+//中断嵌套层数
+static atomic_int   hbox_critical_interrupt_nested=INT_MIN/2;
+//中断初始化，若未初始化时,类似于中断状态，加锁直接返回。
+void hbox_critical_interrupt_init()
+{
+    hbox_critical_interrupt_nested-=INT_MIN/2;
+}
+//中断进入,对于不处于任务中的代码(尤其是没有机会让出控制权的代码),一定要使用中断进入与退出
+void hbox_critical_interrupt_enter()
+{
+    hbox_critical_interrupt_nested++;
+}
+//中断退出，对于不处于任务中的代码(尤其是没有机会让出控制权的代码),一定要使用中断进入与退出。
+void hbox_critical_interrupt_leave()
+{
+    hbox_critical_interrupt_nested--;
+}
+//临界区嵌套的层数
+static atomic_int   hbox_critical_nested=0;
+
 void hbox_enter_critical()
 {
-    if(critical_nested==0)
+    //在中断嵌套过程中，默认锁容易出问题，用户尽量不要使用默认锁
+    while(hbox_critical_nested!=0 && hbox_critical_interrupt_nested==0)
     {
-        critical_data=luat_rtos_entry_critical();
+        //交出控制权
+        luat_rtos_task_sleep(1);
     }
-    critical_nested++;
+    hbox_critical_nested++;
 }
 
 void hbox_exit_critical()
 {
-    critical_nested--;
-    if(critical_nested==0)
-    {
-        luat_rtos_exit_critical(critical_data);
-    }
+    hbox_critical_nested--;
 }
+
 
 void * hbox_malloc(size_t bytes)
 {
@@ -87,6 +105,7 @@ static void display_banner(void)
         }
     }
 #endif // HRC_ENABLED
+    luat_debug_print("hbox task init!");
 }
 
 #ifndef CONFIG_WATCHDOG_TIMEOUT
@@ -96,8 +115,8 @@ static luat_rtos_task_handle task_handle=NULL;
 static void hbox_task_entry(void * param)
 {
     (void)param;
+    hbox_critical_interrupt_init();
     display_banner();
-    luat_debug_print("hbox task init!");
     //设置好看门狗
     hwatchdog_set_hardware_dog_feed(hw_feed);
     hwatchdog_setup_software_dog(sys_reset,hbox_tick_get);
