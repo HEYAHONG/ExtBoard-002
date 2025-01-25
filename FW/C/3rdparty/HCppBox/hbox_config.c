@@ -74,7 +74,7 @@ static void hbox_init(void)
 }
 
 /*
- * 运行环境应当在任务启动之前完成。
+ * 运行环境应当在任务启动之前完成,优先级"z"低于"9"。
  */
 INIT_DRV_EXPORT(hbox_init,"z");
 
@@ -115,7 +115,6 @@ static luat_rtos_task_handle task_handle=NULL;
 static void hbox_task_entry(void * param)
 {
     (void)param;
-    hbox_critical_interrupt_init();
     display_banner();
     //设置好看门狗
     hwatchdog_set_hardware_dog_feed(hw_feed);
@@ -131,10 +130,12 @@ static void hbox_task_entry(void * param)
 
 static void hbox_task_init(void)
 {
+    hbox_critical_interrupt_init();
     luat_rtos_task_create(&task_handle, 8*1024, 0, "hbox_task",hbox_task_entry, NULL, 0);
 }
 
 /*
- * hbox_task
+ * hbox_task 需要比其它用户任务先启动,优先级"!"高于"0"。
  */
-INIT_TASK_EXPORT(hbox_task_init,"0");
+INIT_TASK_EXPORT(hbox_task_init,"!");
+
