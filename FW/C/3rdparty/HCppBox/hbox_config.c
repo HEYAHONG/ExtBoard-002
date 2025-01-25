@@ -44,12 +44,18 @@ void hbox_enter_critical()
     //在中断嵌套过程中，默认锁容易出问题，用户尽量不要使用默认锁
     if(hbox_critical_interrupt_nested==0)
     {
+        luat_rtos_task_suspend_all();
         while(hbox_critical_nested!=0 && (current_task!=NULL && current_task != luat_get_current_task()))
         {
             //交出控制权
+            luat_rtos_task_resume_all();
             luat_rtos_task_sleep(1);
+            luat_rtos_task_suspend_all();
         }
         current_task=luat_get_current_task();
+        hbox_critical_nested++;
+        luat_rtos_task_resume_all();
+        return;
     }
     hbox_critical_nested++;
 }
