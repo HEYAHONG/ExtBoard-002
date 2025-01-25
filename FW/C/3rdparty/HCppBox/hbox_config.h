@@ -12,4 +12,10 @@
  */
 #define H3RDPARTY_USING_SYSTEM_PAHO_MQTT_EMBEDDED_C_PACKET 1
 
+
+/*
+ * 启用C++初始化
+ */
+ #define HCPPRT_USE_CTORS       1
+
 #endif // __HBOX_CONFIG_H__

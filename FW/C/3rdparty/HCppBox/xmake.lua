@@ -1,14 +1,12 @@
 --获取当前目录
 local current_dir=os.scriptdir()
---获取HRC_FS_ROOT_DIR并生成相应文件
+--SDK补丁路径
+local sdk_patch_src_file_name=current_dir.."/sdk_patch/ec618_0h00_flash.c"
+local sdk_patch_dest_file_name=current_dir.."/../../sdk/PLAT/core/ld/ec618_0h00_flash.c"
+--获取HRC_FS_ROOT_DIR
 local hrc_fs_root_dir=os.getenv("HRC_FS_ROOT_DIR")
 if  HRC_FS_ROOT_DIR then
     hrc_fs_root_dir=HRC_FS_ROOT_DIR
-end
-if  hrc_fs_root_dir then
-       before_build(function()
-                        os.exec(current_dir.."/master/hrc/fsgen.exe".." "..hrc_fs_root_dir.." "..current_dir.."/RC_fs.c")
-                    end)
 end
 --添加TARGET
 local TARGET_NAME = "HCppBox"
@@ -18,6 +16,15 @@ local LIB_NAME = "lib" .. TARGET_NAME .. ".a "
 target(TARGET_NAME)
     set_kind("static")
     set_targetdir(LIB_DIR)
+
+    --构建HCppBox之前需要的操作
+    before_build(function()
+                    os.cp(sdk_patch_src_file_name,sdk_patch_dest_file_name)
+                    if  hrc_fs_root_dir then
+                        os.exec(current_dir.."/master/hrc/fsgen.exe".." "..hrc_fs_root_dir.." "..current_dir.."/RC_fs.c")
+                    end
+                end)
+
 
     --关闭不关注的警告
     add_cxxflags("-Wno-unused-parameter","-Wno-effc++","-Wno-sign-compare")
@@ -30,12 +37,14 @@ target(TARGET_NAME)
     add_includedirs("./master/hbox",{public = true})
     add_includedirs("./master/hbox/cpp",{public = true})
     add_files("./*.c",{public = true})
+    add_files("./*.cpp",{public = true})
     add_files("./master/hbox/*.c",{public = true})
     add_files("./master/hbox/cpp/*.cpp",{public = true})
     add_files("./master/hbox/modbus/*.c",{public = true})
     add_files("./master/hbox/gui/*.c",{public = true})
 
     if hrc_fs_root_dir then
+        add_defines("HRC_ENABLED=1")
         add_includedirs("./master/hrc",{public = true})
         add_files("./master/hrc/*.c",{public = true})
         add_files("./RC_fs.c",{public = true})
