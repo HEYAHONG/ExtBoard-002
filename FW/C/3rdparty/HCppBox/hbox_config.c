@@ -129,6 +129,23 @@ static void hbox_task_entry(void * param)
         luat_rtos_task_sleep(1);
         HWATCHDOG_FEED();//喂狗
         hbox_loop_process_events();
+
+        {
+            static hdefaults_tick_t last_tick=0;
+            if(hdefaults_tick_get()-last_tick > 5000)
+            {
+                last_tick=hdefaults_tick_get();
+                static size_t last_max_used=0;
+                size_t total=0,max_used=0,used=0;
+                luat_meminfo_sys(&total,&used,&max_used);
+                if(((last_max_used>max_used)?(last_max_used-max_used):(max_used-last_max_used))> 1024)
+                {
+                    //最大内存变动超过1k时
+                    last_max_used=max_used;
+                    luat_debug_print("mem:total=%d,max_used=%d,used=%d",total,max_used,used);
+                }
+            }
+        }
     }
 }
 
