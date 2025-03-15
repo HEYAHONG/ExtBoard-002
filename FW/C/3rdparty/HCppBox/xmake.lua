@@ -30,6 +30,8 @@ target(TARGET_NAME)
     add_cxxflags("-Wno-unused-parameter","-Wno-effc++","-Wno-sign-compare")
     add_cflags("-Wno-unused-parameter","-Wno-sign-compare")
     
+    
+    
     --设置C/C++标准
     add_cxxflags("-std=gnu++11")
     add_cflags("-std=gnu11",{force=true})
@@ -44,8 +46,6 @@ target(TARGET_NAME)
     add_files("./*.cpp",{public = true})
     add_files("./master/hbox/*.c",{public = true})
     add_files("./master/hbox/cpp/*.cpp",{public = true})
-    add_files("./master/hbox/modbus/*.c",{public = true})
-    add_files("./master/hbox/gui/*.c",{public = true})
 
     if hrc_fs_root_dir then
         add_defines("HRC_ENABLED=1")
