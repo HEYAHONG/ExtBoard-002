@@ -19,50 +19,23 @@ hdefaults_tick_t hbox_tick_get(void)
     return luat_mcu_tick64()/(1000*luat_mcu_us_period());
 }
 
-//中断嵌套层数
-static atomic_int   hbox_critical_interrupt_nested=INT_MIN/2;
-//中断初始化，若未初始化时,类似于中断状态，加锁直接返回。
-static void hbox_critical_interrupt_init()
+static luat_rtos_mutex_t hbox_global_lock=NULL;
+static void hbox_critical_init()
 {
-    hbox_critical_interrupt_nested-=INT_MIN/2;
+    if(hbox_global_lock==NULL)
+    {
+        luat_rtos_mutex_create(&hbox_global_lock);
+    }
 }
-//中断进入,对于不处于任务中的代码(尤其是没有机会让出控制权的代码),一定要使用中断进入与退出
-void hbox_critical_interrupt_enter()
-{
-    hbox_critical_interrupt_nested++;
-}
-//中断退出，对于不处于任务中的代码(尤其是没有机会让出控制权的代码),一定要使用中断进入与退出。
-void hbox_critical_interrupt_leave()
-{
-    hbox_critical_interrupt_nested--;
-}
-//临界区嵌套的层数
-static atomic_int       hbox_critical_nested=0;
-static void _Atomic *  current_task=NULL;
 void hbox_enter_critical()
 {
-    //在中断嵌套过程中，默认锁容易出问题，用户尽量不要使用默认锁
-    if(hbox_critical_interrupt_nested==0)
-    {
-        luat_rtos_task_suspend_all();
-        while(hbox_critical_nested!=0 && (current_task!=NULL && current_task != luat_get_current_task()))
-        {
-            //交出控制权
-            luat_rtos_task_resume_all();
-            luat_rtos_task_sleep(1);
-            luat_rtos_task_suspend_all();
-        }
-        current_task=luat_get_current_task();
-        hbox_critical_nested++;
-        luat_rtos_task_resume_all();
-        return;
-    }
-    hbox_critical_nested++;
+    hbox_critical_init();
+    luat_rtos_mutex_lock(hbox_global_lock,LUAT_WAIT_FOREVER);
 }
 
 void hbox_exit_critical()
 {
-    hbox_critical_nested--;
+    luat_rtos_mutex_unlock(hbox_global_lock);
 }
 
 
@@ -78,9 +51,11 @@ void hbox_free(void *ptr)
 
 static void hbox_init(void)
 {
+
     luat_debug_print("hbox lowlevel init!");
     //初始化HBox C++运行环境
     hcpprt_init();
+
 }
 
 /*
@@ -119,7 +94,7 @@ static void display_banner(void)
 }
 
 #ifndef CONFIG_WATCHDOG_TIMEOUT
-#define CONFIG_WATCHDOG_TIMEOUT 5
+#define CONFIG_WATCHDOG_TIMEOUT 60
 #endif // CONFIG_WATCHDOG_TIMEOUT
 static luat_rtos_task_handle task_handle=NULL;
 static void hbox_task_entry(void * param)
@@ -157,7 +132,8 @@ static void hbox_task_entry(void * param)
 
 static void hbox_task_init(void)
 {
-    hbox_critical_interrupt_init();
+    hbox_critical_init();
+
     luat_rtos_task_create(&task_handle, 8*1024, 0, "hbox_task",hbox_task_entry, NULL, 0);
 }
 
