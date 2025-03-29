@@ -27,3 +27,18 @@
 固件的目录命名规则为 [固件编号]-[固件名称] 。
 
 - [001-base](001-base):基本固件
+
+
+
+# 调试
+
+注意:若未特殊说明，本章节内容支持所有固件。
+
+除了使用LuaTools调试，固件还支持使用USB串口的用户串口（通常是第一个由USB枚举的串口）进行调试。
+
+推荐使用支持终端转义序列的软件（如[putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/)、minicom）打开USB用户串口(参数可使用串口软件的默认参数)。
+
+![usb_shell_debug](usb_shell_debug.png)
+
+
+
