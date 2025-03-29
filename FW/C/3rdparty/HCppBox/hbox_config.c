@@ -53,6 +53,12 @@ static void hbox_init(void)
 {
 
     luat_debug_print("hbox lowlevel init!");
+    {
+        //初始化hshell组件
+        hshell_command_name_shortcut_set(NULL,true);
+        HSHELL_COMMANDS_REGISTER(NULL);	//注册命令
+
+    }
     //初始化HBox C++运行环境
     hcpprt_init();
 
@@ -142,3 +148,13 @@ static void hbox_task_init(void)
  */
 INIT_TASK_EXPORT(hbox_task_init,"!");
 
+
+/*
+ * 系统复位
+ */
+static int cmd_reboot_entry(int argc,const char *argv[])
+{
+    sys_reset();
+    return 0;
+}
+HSHELL_COMMAND_EXPORT(reboot,cmd_reboot_entry,reboot system);

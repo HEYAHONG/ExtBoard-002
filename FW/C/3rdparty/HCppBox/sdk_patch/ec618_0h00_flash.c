@@ -319,6 +319,14 @@ SECTIONS
     *(.ARM.extab*) 
   } >FLASH_AREA
 
+   .HShellCommand :
+  {
+    . = ALIGN(4);
+   PROVIDE ( __hshell_command_start = . );
+   KEEP (*(.HShellCommand))
+   PROVIDE ( __hshell_command_end = . );
+  } >FLASH_AREA
+
   .init_array :
   {
     . = ALIGN(4);

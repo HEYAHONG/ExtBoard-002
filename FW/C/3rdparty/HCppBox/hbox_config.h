@@ -18,4 +18,10 @@
  */
 #define HCPPRT_USE_CTORS       1
 
+
+/*
+ * HShell缓冲大小
+ */
+#define HSHELL_CONTEXT_BUFFER_SIZE 512
+
 #endif // __HBOX_CONFIG_H__
