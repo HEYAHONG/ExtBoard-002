@@ -4,7 +4,7 @@
 #include "luat_uart.h"
 #include "hbox.h"
 
-
+static bool usb_serial_connected=false;
 static luat_rtos_task_handle usb_shell_task_handle=NULL;
 static hshell_context_t usb_hshell= {0};
 static uint8_t usb_rx_buffer[2048]= {0};
@@ -17,6 +17,7 @@ static hringbuf_t * usb_rx_buffer_get(void)
 }
 static void luat_usb_recv_cb(int uart_id, uint32_t data_len)
 {
+    usb_serial_connected=true;
     while(data_len > 0)
     {
         //每次读取16字节
@@ -91,7 +92,10 @@ static void task_usb_hshell(void *param)
     while (true)
     {
         luat_rtos_task_sleep(1);
-        while(hshell_loop(&usb_hshell)==0);
+        if(usb_serial_connected)
+        {
+            while(hshell_loop(&usb_hshell)==0);
+        }
     }
     luat_rtos_task_delete(usb_shell_task_handle);
 }
