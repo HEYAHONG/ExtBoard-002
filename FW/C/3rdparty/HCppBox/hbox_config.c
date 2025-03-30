@@ -174,3 +174,12 @@ static int cmd_free_entry(int argc,const char *argv[])
 }
 HSHELL_COMMAND_EXPORT(free,cmd_free_entry,show meminfo);
 
+#include "time.h"
+static int cmd_datetime_entry(int argc,const char *argv[])
+{
+    hshell_context_t * hshell_ctx=hshell_context_get_from_main_argv(argc,argv);
+    time_t time_now=time(NULL);
+    hshell_printf(hshell_ctx,"%s",asctime(localtime(&time_now)));
+    return 0;
+};
+HSHELL_COMMAND_EXPORT(datetime,cmd_datetime_entry,show datetime);
