@@ -158,3 +158,19 @@ static int cmd_reboot_entry(int argc,const char *argv[])
     return 0;
 }
 HSHELL_COMMAND_EXPORT(reboot,cmd_reboot_entry,reboot system);
+
+/*
+ * 内存信息
+ */
+static int cmd_free_entry(int argc,const char *argv[])
+{
+    hshell_context_t * hshell_ctx=hshell_context_get_from_main_argv(argc,argv);
+    {
+        size_t total=0,max_used=0,used=0;
+        luat_meminfo_sys(&total,&used,&max_used);
+        hshell_printf(hshell_ctx,"total:%d bytes,used:%d bytes,free: %d bytes,max_used: %d bytes\r\n",(int)total,(int)used,(int)(total-used),(int)max_used);
+    }
+    return 0;
+}
+HSHELL_COMMAND_EXPORT(free,cmd_free_entry,show meminfo);
+
