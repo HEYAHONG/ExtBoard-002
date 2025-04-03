@@ -43,7 +43,7 @@ target(TARGET_NAME)
     add_includedirs("./master/hbox",{public = true})
     add_includedirs("./master/hbox/cpp",{public = true})
     add_files("./*.c",{public = true})
-    add_files("./*.cpp",{public = true})
+    --add_files("./*.cpp",{public = true})
     add_files("./master/hbox/*.c",{public = true})
     add_files("./master/hbox/cpp/*.cpp",{public = true})
 

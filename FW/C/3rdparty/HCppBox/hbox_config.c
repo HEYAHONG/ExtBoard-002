@@ -1,6 +1,5 @@
 #include "hbox_config.h"
 #include "hbox.h"
-#include "hbox_loop.h"
 #ifdef HRC_ENABLED
 #include "hrc.h"
 #endif // HRC_ENABLED
@@ -99,6 +98,26 @@ static void display_banner(void)
     luat_debug_print("hbox task init!");
 }
 
+static void hbox_memory_check_slot(void *sig,void *usr)
+{
+    {
+        static hdefaults_tick_t last_tick=0;
+        if(hdefaults_tick_get()-last_tick > 5000)
+        {
+            last_tick=hdefaults_tick_get();
+            static size_t last_max_used=0;
+            size_t total=0,max_used=0,used=0;
+            luat_meminfo_sys(&total,&used,&max_used);
+            if(((last_max_used>max_used)?(last_max_used-max_used):(max_used-last_max_used))> 1024)
+            {
+                //最大内存变动超过1k时
+                last_max_used=max_used;
+                luat_debug_print("mem:total=%d,max_used=%d,used=%d",total,max_used,used);
+            }
+        }
+    }
+}
+
 #ifndef CONFIG_WATCHDOG_TIMEOUT
 #define CONFIG_WATCHDOG_TIMEOUT 60
 #endif // CONFIG_WATCHDOG_TIMEOUT
@@ -111,28 +130,25 @@ static void hbox_task_entry(void * param)
     hwatchdog_set_hardware_dog_feed(hw_feed);
     hwatchdog_setup_software_dog(sys_reset,hbox_tick_get);
     luat_wdt_set_timeout(CONFIG_WATCHDOG_TIMEOUT);
+    {
+        //注册循环槽
+        heventslots_t *slots_loop=heventslots_get_slots_from_table(HEVENTSLOTS_SYSTEM_SLOTS_LOOP);
+        if(slots_loop==NULL)
+        {
+            heventslots_set_slots_to_table(HEVENTSLOTS_SYSTEM_SLOTS_LOOP,NULL);
+        }
+        slots_loop=heventslots_get_slots_from_table(HEVENTSLOTS_SYSTEM_SLOTS_LOOP);
+        if(slots_loop!=NULL)
+        {
+            //检查内存
+            heventslots_register_slot(slots_loop,NULL,hbox_memory_check_slot,NULL);
+        }
+    }
     while(true)
     {
         luat_rtos_task_sleep(1);
         HWATCHDOG_FEED();//喂狗
-        hbox_loop_process_events();
-
-        {
-            static hdefaults_tick_t last_tick=0;
-            if(hdefaults_tick_get()-last_tick > 5000)
-            {
-                last_tick=hdefaults_tick_get();
-                static size_t last_max_used=0;
-                size_t total=0,max_used=0,used=0;
-                luat_meminfo_sys(&total,&used,&max_used);
-                if(((last_max_used>max_used)?(last_max_used-max_used):(max_used-last_max_used))> 1024)
-                {
-                    //最大内存变动超过1k时
-                    last_max_used=max_used;
-                    luat_debug_print("mem:total=%d,max_used=%d,used=%d",total,max_used,used);
-                }
-            }
-        }
+        hcpprt_loop();
     }
 }
 
