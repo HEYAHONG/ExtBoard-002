@@ -24,4 +24,16 @@
  */
 #define HSHELL_CONTEXT_BUFFER_SIZE 512
 
+
+/*
+ * 启用初始化段
+ */
+#define HRUNTIME_USING_INIT_SECTION 1
+
+/*
+ * 启用循环段
+ */
+#define HRUNTIME_USING_LOOP_SECTION 1
+
+
 #endif // __HBOX_CONFIG_H__

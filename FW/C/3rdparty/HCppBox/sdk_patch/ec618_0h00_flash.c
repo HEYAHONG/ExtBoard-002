@@ -31,9 +31,9 @@ SECTIONS
   .cache : ALIGN(128)
   {
     Image$$UNLOAD_NOCACHE$$Base = .;
-    *libdriver*.a:cache.o(.text*) 
+    *libdriver*.a:cache.o(.text*)
   } >FLASH_AREA
-  
+
   .load_bootcode 0x0 :
   {
     . = ALIGN(4);
@@ -99,7 +99,7 @@ SECTIONS
    . = ALIGN(4);
   } >ASMB_AREA AT>FLASH_AREA
   Image$$LOAD_AP_FDATA_ASMB$$Length = SIZEOF(.load_ap_rwdata_asmb);
-  
+
   .load_ps_rwdata_asmb : ALIGN(4)
   {
     Load$$LOAD_PS_FDATA_ASMB$$RW$$Base = LOADADDR(.load_ps_rwdata_asmb);
@@ -108,7 +108,7 @@ SECTIONS
     . = ALIGN(4);
   } >ASMB_AREA AT>FLASH_AREA
   Image$$LOAD_PS_FDATA_ASMB$$RW$$Length = SIZEOF(.load_ps_rwdata_asmb);
-  
+
   .load_ap_zidata_asmb (NOLOAD):
   {
    . = ALIGN(4);
@@ -116,7 +116,7 @@ SECTIONS
    *(.platFAZIData)
    . = ALIGN(4);
    Image$$LOAD_AP_FDATA_ASMB$$ZI$$Limit = .;
-   
+
    Image$$LOAD_PS_FDATA_ASMB$$ZI$$Base = .;
    *(.psFAZIData)
    . = ALIGN(4);
@@ -126,14 +126,14 @@ SECTIONS
    *(.exceptCheck)
   } >ASMB_AREA
   PROVIDE(load_ap_zidata_asmb_end_addr = . );
-  
+
   ASSERT(CP_AONMEMBACKUP_START_ADDR>load_ap_zidata_asmb_end_addr,"load ap use too much ram, exceed to unload_cpaon")
- 
+
   .unload_cpaon CP_AONMEMBACKUP_START_ADDR (NOLOAD):
   {
 
   } >ASMB_AREA
-  
+
   .load_rrcmem 0xB000 (NOLOAD):
   {
     *(.rrcMem)
@@ -311,12 +311,12 @@ SECTIONS
 
   .ex :
   {
-    . = ALIGN(4); 
+    . = ALIGN(4);
     __exidx_start = .;
-    *(.ARM.exidx* .gnu.linkonce.armexidx.*) 
+    *(.ARM.exidx* .gnu.linkonce.armexidx.*)
     __exidx_end = .;
     . = ALIGN(4);
-    *(.ARM.extab*) 
+    *(.ARM.extab*)
   } >FLASH_AREA
 
    .HShellCommand :
@@ -325,6 +325,22 @@ SECTIONS
    PROVIDE ( __hshell_command_start = . );
    KEEP (*(.HShellCommand))
    PROVIDE ( __hshell_command_end = . );
+  } >FLASH_AREA
+
+  .HRuntimeInit :
+  {
+    . = ALIGN(4);
+   PROVIDE ( __hruntime_init_start = . );
+   KEEP (*(.HRuntimeInit))
+   PROVIDE ( __hruntime_init_end = . );
+  } >FLASH_AREA
+
+  .HRuntimeLoop :
+  {
+    . = ALIGN(4);
+   PROVIDE ( __hruntime_loop_start = . );
+   KEEP (*(.HRuntimeLoop))
+   PROVIDE ( __hruntime_loop_end = . );
   } >FLASH_AREA
 
   .init_array :
@@ -344,7 +360,7 @@ SECTIONS
       KEEP (*(.preinit_fun_array*))
       __preinit_fun_array_end = .;
       . = ALIGN(4);
-  } > FLASH_AREA   
+  } > FLASH_AREA
   .drv_init_fun_array :
   {
       . = ALIGN(4);
@@ -354,7 +370,7 @@ SECTIONS
       __drv_init_fun_array_end = .;
       . = ALIGN(4);
   } > FLASH_AREA
-  
+
   .task_fun_array :
   {
       . = ALIGN(4);
@@ -371,12 +387,12 @@ SECTIONS
   {
   *(.shareInfo)
   } >MSMB_AREA
-  
+
   .load_dbg_area XP_DBGRESERVED_BASE_ADDR (NOLOAD):
   {
   *(.resetFlag)
   } >MSMB_AREA
-  
+
   .unload_xp_ipcmem IPC_SHAREDMEM_START_ADDR (NOLOAD):
   {
 

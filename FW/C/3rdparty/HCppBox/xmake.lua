@@ -27,8 +27,8 @@ target(TARGET_NAME)
 
 
     --关闭不关注的警告
-    add_cxxflags("-Wno-unused-parameter","-Wno-effc++","-Wno-sign-compare")
-    add_cflags("-Wno-unused-parameter","-Wno-sign-compare")
+    add_cxxflags("-Wno-unused-parameter","-Wno-effc++","-Wno-sign-compare","-Wno-clobbered")
+    add_cflags("-Wno-unused-parameter","-Wno-sign-compare","-Wno-clobbered")
     
     
     
