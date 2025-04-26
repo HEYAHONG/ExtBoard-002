@@ -45,6 +45,7 @@ target(TARGET_NAME)
     add_files("./*.c",{public = true})
     --add_files("./*.cpp",{public = true})
     add_files("./master/hbox/*.c",{public = true})
+    add_files("./master/hbox/h3rdparty/*.c",{public = true})
     add_files("./master/hbox/cpp/*.cpp",{public = true})
 
     if hrc_fs_root_dir then
