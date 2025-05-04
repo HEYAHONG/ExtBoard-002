@@ -37,24 +37,24 @@ static void luat_usb_recv_cb(int uart_id, uint32_t data_len)
     }
 }
 
-static void hputchar(char c)
+static void husb_putchar(char c)
 {
     luat_uart_write(LUAT_VUART_ID_0, (uint8_t*)&c, sizeof(c));
 }
 
 
-static int hbox_shell_putchar(int ch)
+int hbox_shell_putchar(int ch)
 {
     if(ch>0)
     {
-        hputchar(ch&0xFF);
+        husb_putchar(ch&0xFF);
     }
     return ch;
 
 }
 
 
-static int hbox_shell_getchar(void)
+int hbox_shell_getchar(void)
 {
     int ch=EOF;
     {
