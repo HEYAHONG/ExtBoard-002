@@ -343,6 +343,14 @@ SECTIONS
    PROVIDE ( __hruntime_loop_end = . );
   } >FLASH_AREA
 
+  .HRuntimeSymbol :
+  {
+    . = ALIGN(4);
+   PROVIDE ( __hruntime_symbol_start = . );
+   KEEP (*(.HRuntimeSymbol))
+   PROVIDE ( __hruntime_symbol_end = . );
+  } >FLASH_AREA
+
   .init_array :
   {
     . = ALIGN(4);
