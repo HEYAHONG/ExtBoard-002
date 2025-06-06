@@ -27,8 +27,8 @@ target(TARGET_NAME)
 
 
     --关闭不关注的警告
-    add_cxxflags("-Wno-unused-parameter","-Wno-effc++","-Wno-sign-compare","-Wno-clobbered")
-    add_cflags("-Wno-unused-parameter","-Wno-sign-compare","-Wno-clobbered")
+    add_cxxflags("-Wno-unused-parameter","-Wno-effc++","-Wno-sign-compare","-Wno-clobbered","-Wno-stack-usage")
+    add_cflags("-Wno-unused-parameter","-Wno-sign-compare","-Wno-clobbered","-Wno-stack-usage")
     
     
     
@@ -45,7 +45,7 @@ target(TARGET_NAME)
     add_files("./*.c",{public = true})
     --add_files("./*.cpp",{public = true})
     add_files("./master/hbox/*.c",{public = true})
-    add_files("./master/hbox/h3rdparty/*.c",{public = true})
+    add_files("./master/hbox/h3rdparty/*.c",{public = true,cflags = " -Wno-implicit-fallthrough "})
     add_files("./master/hbox/cpp/*.cpp",{public = true})
 
     if hrc_fs_root_dir then
