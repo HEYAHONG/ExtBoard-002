@@ -51,7 +51,10 @@
  */
 #define HGETCHAR hbox_shell_getchar
 
-
+/*
+ * 使用系统的TLSF
+ */
+#define H3RDPARTY_USING_SYSTEM_TLSF 1
 
 
 #endif // __HBOX_CONFIG_H__
