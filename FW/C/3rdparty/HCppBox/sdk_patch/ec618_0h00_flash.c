@@ -323,7 +323,7 @@ SECTIONS
   {
     . = ALIGN(4);
    PROVIDE ( __hshell_command_start = . );
-   KEEP (*(SORT(.HShellCommand)))
+   KEEP (*(SORT(.HShellCommand*)))
    PROVIDE ( __hshell_command_end = . );
   } >FLASH_AREA
 
@@ -331,7 +331,7 @@ SECTIONS
   {
     . = ALIGN(4);
    PROVIDE ( __hruntime_init_start = . );
-   KEEP (*(SORT(.HRuntimeInit)))
+   KEEP (*(SORT(.HRuntimeInit*)))
    PROVIDE ( __hruntime_init_end = . );
   } >FLASH_AREA
 
@@ -339,7 +339,7 @@ SECTIONS
   {
     . = ALIGN(4);
    PROVIDE ( __hruntime_loop_start = . );
-   KEEP (*(SORT(.HRuntimeLoop)))
+   KEEP (*(SORT(.HRuntimeLoop*)))
    PROVIDE ( __hruntime_loop_end = . );
   } >FLASH_AREA
 
@@ -347,7 +347,7 @@ SECTIONS
   {
     . = ALIGN(4);
    PROVIDE ( __hruntime_symbol_start = . );
-   KEEP (*(SORT(.HRuntimeSymbol)))
+   KEEP (*(SORT(.HRuntimeSymbol*)))
    PROVIDE ( __hruntime_symbol_end = . );
   } >FLASH_AREA
 
