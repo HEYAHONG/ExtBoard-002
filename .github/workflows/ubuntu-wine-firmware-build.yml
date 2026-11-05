@@ -9,7 +9,8 @@ permissions:
   contents: write
 
 env:
-  XMAKE_VERSION: v2.9.9
+  # Pinned for reproducible builds; this version has been verified with Wine.
+  XMAKE_VERSION: v3.1.2
 
 jobs:
   discover:
@@ -132,15 +133,60 @@ jobs:
 
           cd "FW/C/${PROJECT}"
 
+          # The workflow workspace is temporary, so patch build.bat in place
+          # at build time (the committed source is never changed) to turn
+          # "pause" into a proper error exit.
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("build.bat")
+          data = path.read_bytes()
+
+          if data.count(b"\r\npause\r\n") != 2:
+              raise SystemExit("unexpected standalone pause count in build.bat")
+
+          failure = b'if NOT "X%ERRORLEVEL%" == "X0" PAUSE'
+          if failure not in data:
+              raise SystemExit("xmake failure check not found in build.bat")
+
+          if data.count(b"\r\ngoto :eof") != 5:
+              raise SystemExit("unexpected goto :eof count in build.bat")
+
+          # A failed firmware build must stop with a non-zero exit code.
+          data = data.replace(
+              failure,
+              b'if "X%ERRORLEVEL%" == "X0" goto :BuildOk\r\n'
+              b"echo Build failed, errorlevel: %ERRORLEVEL%\r\n"
+              b"exit /b %ERRORLEVEL%\r\n"
+              b":BuildOk",
+          )
+
+          # Pre-check failures must stop with a non-zero exit code.
+          data = data.replace(b"\r\npause\r\n", b"\r\nexit /b 1\r\n")
+
+          # The remaining cmake/ninja/gcc checks only drive optional CodeBlocks
+          # project generation, so they must not fail a successful build.
+          data = data.replace(b"\r\ngoto :eof", b"\r\nexit /b 0")
+          data = data.replace(b"exit /b 1\r\nexit /b 0", b"exit /b 1")
+
+          if b"pause" in data.lower():
+              raise SystemExit("pause remaining after patching build.bat")
+
+          path.write_bytes(data)
+          PY
+
           set +e
-          timeout 120m wine cmd /c build.bat </dev/null \
+          timeout 120m wine cmd /c build.bat \
             2>&1 | tee "${RUNNER_TEMP}/build-${PROJECT}.log"
           status=${PIPESTATUS[0]}
           set -e
 
-          # build.bat ends with cmake/ninja checks that fail on a Wine-only
-          # environment, so the produced artifacts below decide the result.
-          echo "build.bat exited with status ${status}"
+          if ((status != 0)); then
+            echo "::error::build.bat exited with status ${status} for ${PROJECT}."
+            exit "$status"
+          fi
+
+          echo "build.bat succeeded."
 
       - name: Upload build log
         if: always()
