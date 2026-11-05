@@ -9,8 +9,11 @@ permissions:
   contents: write
 
 env:
-  # Pinned for reproducible builds; this version has been verified with Wine.
-  XMAKE_VERSION: v3.1.2
+  # Pinned for reproducible builds; tested with Wine.
+  XMAKE_VERSION: v2.9.9
+  # Pre-install a Windows git so xmake does not try to install MinGit itself.
+  MINGIT_RELEASE: v2.56.0.windows.4
+  MINGIT_ARCHIVE: MinGit-2.56.0.4-64-bit.zip
 
 jobs:
   discover:
@@ -113,6 +116,29 @@ jobs:
             /d "C:\\xmake;${current_path}" /f
 
           wine cmd /c xmake --version
+
+      - name: Install Windows git into Wine
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          wine_prefix="${WINEPREFIX:-$HOME/.wine}"
+          mkdir -p "${wine_prefix}/drive_c"
+
+          curl -fsSL --retry 3 \
+            -o "${RUNNER_TEMP}/mingit.zip" \
+            "https://github.com/git-for-windows/git/releases/download/${MINGIT_RELEASE}/${MINGIT_ARCHIVE}"
+
+          rm -rf "${wine_prefix}/drive_c/git"
+          unzip -q -o "${RUNNER_TEMP}/mingit.zip" -d "${wine_prefix}/drive_c/git"
+
+          # Prepend git to the PATH stored in the Wine registry.
+          current_path="$(wine cmd /c 'echo %PATH%' | tr -d '\r' | tail -n 1)"
+          wine reg add 'HKCU\Environment' \
+            /v Path /t REG_EXPAND_SZ \
+            /d "C:\\git\\cmd;C:\\git\\mingw64\\bin;${current_path}" /f
+
+          wine cmd /c git --version
 
       - name: Clean the SDK out directory
         shell: bash
