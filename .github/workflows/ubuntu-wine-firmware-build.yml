@@ -14,6 +14,9 @@ env:
   # Pre-install a Windows git so xmake does not try to install MinGit itself.
   MINGIT_RELEASE: v2.56.0.windows.4
   MINGIT_ARCHIVE: MinGit-2.56.0.4-64-bit.zip
+  # Pre-install the ARM toolchain (official ARM/Azure mirror) and point the SDK
+  # at it, so xmake does not download it from the slow openluat CDN.
+  GCC_ARM_URL: https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-win32.zip
 
 jobs:
   discover:
@@ -139,6 +142,26 @@ jobs:
             /d "C:\\git\\cmd;C:\\git\\mingw64\\bin;${current_path}" /f
 
           wine cmd /c git --version
+
+      - name: Install ARM GCC toolchain into Wine
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          wine_prefix="${WINEPREFIX:-$HOME/.wine}"
+          mkdir -p "${wine_prefix}/drive_c"
+
+          curl -fL --retry 3 --retry-delay 5 \
+            -o "${RUNNER_TEMP}/gcc-arm.zip" \
+            "${GCC_ARM_URL}"
+
+          rm -rf "${wine_prefix}/drive_c/gcc-arm-none-eabi-10.3-2021.10"
+          unzip -q -o "${RUNNER_TEMP}/gcc-arm.zip" -d "${wine_prefix}/drive_c"
+
+          # The SDK uses GCC_PATH instead of downloading gnu_rm via xmake.
+          echo 'GCC_PATH=C:\gcc-arm-none-eabi-10.3-2021.10' >> "$GITHUB_ENV"
+
+          wine 'C:\gcc-arm-none-eabi-10.3-2021.10\bin\arm-none-eabi-gcc.exe' --version
 
       - name: Clean the SDK out directory
         shell: bash
