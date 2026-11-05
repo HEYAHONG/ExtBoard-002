@@ -56,6 +56,14 @@
  */
 #define H3RDPARTY_USING_SYSTEM_TLSF 1
 
+/*
+ * 关闭部分不兼容的syscall
+ */
+#define HDEFAULTS_SYSCALL_NO_HMKDIR 1
+#define HDEFAULTS_SYSCALL_NO_HFSYNC 1
+
+
+
 #if defined(H3RDPARTY_TLSF_PORT)
 /*
  * 恢复TLSF默认的定义(SDK中的TLSF头文件某些函数的参数较开源版本多了参数)
