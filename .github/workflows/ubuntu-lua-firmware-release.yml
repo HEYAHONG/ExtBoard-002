@@ -1,0 +1,124 @@
+name: ubuntu lua firmware release
+
+on:
+  push:
+    tags: [testing]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  discover:
+    name: Discover Lua firmware projects
+    runs-on: ubuntu-latest
+    outputs:
+      projects: ${{ steps.find.outputs.projects }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Find FW/Lua projects with a main.lua file
+        id: find
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          projects=()
+          for dir in FW/Lua/[0-9]*-*/; do
+            dir="${dir%/}"
+            [[ -f "$dir/main.lua" ]] || continue
+            projects+=("$(basename "$dir")")
+          done
+
+          if ((${#projects[@]} == 0)); then
+            echo 'projects=[]' >> "$GITHUB_OUTPUT"
+            echo "No Lua firmware project containing a main.lua file was found."
+          else
+            json="$(printf '%s\n' "${projects[@]}" | jq -Rsc 'split("\n") | map(select(length > 0))')"
+            echo "projects=${json}" >> "$GITHUB_OUTPUT"
+            printf 'Discovered Lua firmware projects: %s\n' "${projects[*]}"
+          fi
+
+  package:
+    name: Package ${{ matrix.project }}
+    needs: discover
+    if: needs.discover.outputs.projects != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.discover.outputs.projects) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Package ${{ matrix.project }}
+        env:
+          PROJECT: ${{ matrix.project }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          src_dir="FW/Lua/${PROJECT}"
+          dist_dir="${RUNNER_TEMP}/dist"
+          mkdir -p "$dist_dir"
+
+          if [[ ! -f "${src_dir}/main.lua" ]]; then
+            echo "::error::${src_dir} is not a Lua firmware project (main.lua is missing)."
+            exit 1
+          fi
+
+          # Pack the project contents, so main.lua sits at the archive root.
+          (
+            cd "$src_dir"
+            zip -r -q "${dist_dir}/${PROJECT}-lua-snapshot.zip" .
+          )
+
+          echo "Created ${PROJECT}-lua-snapshot.zip:"
+          unzip -l "${dist_dir}/${PROJECT}-lua-snapshot.zip"
+
+      - name: Upload ${{ matrix.project }} package
+        uses: actions/upload-artifact@v4
+        with:
+          name: lua-firmware-${{ matrix.project }}
+          path: ${{ runner.temp }}/dist/${{ matrix.project }}-lua-snapshot.zip
+          if-no-files-found: error
+
+  release:
+    name: Publish testing release
+    needs: [discover, package]
+    if: needs.package.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Lua firmware packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: lua-firmware-*
+          path: ${{ runner.temp }}/dist
+          merge-multiple: true
+
+      - name: Publish to the testing release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          files=("${RUNNER_TEMP}"/dist/*-lua-snapshot.zip)
+          if [[ ! -e "${files[0]}" ]]; then
+            echo "::error::No Lua firmware snapshot packages were downloaded."
+            exit 1
+          fi
+
+          if ! gh release view testing >/dev/null 2>&1; then
+            gh release create testing \
+              --prerelease \
+              --title "testing" \
+              --notes "Automated firmware snapshots for tag \`testing\`." \
+              --target "$GITHUB_SHA"
+          fi
+
+          gh release upload testing "${files[@]}" --clobber
